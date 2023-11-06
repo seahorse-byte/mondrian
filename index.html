@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+      canvas {
+        border: 1px solid black;
+        background-color: rgb(28, 52, 105);
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="daliCanvas" width="100%" height="100%"></canvas>
+
+    <script>
+      const canvas = document.getElementById("daliCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+
+      function drawDistortedObject(x, y, size, distortion, color) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + size / 2, y - distortion * size);
+        ctx.lineTo(x + size, y);
+        ctx.lineTo(x, y);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      function getRandomColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        const a = Math.random();
+        return `rgb(${r},${g},${b},${a})`;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function drawCircle(x, y, radius, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      function drawSquare(x, y, size, color, opacity) {
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, size, size);
+        ctx.globalAlpha = 1.0; // Reset global alpha
+      }
+
+      function drawRandomLines() {
+        const lineColor = "#eeffee";
+        const lineWidth = 0.05;
+
+        for (let i = 0; i < 20; i++) {
+          const lineX = Math.random() * canvas.width;
+          const lineY = Math.random() * canvas.height;
+          const lineLength = Math.random() * 125;
+          const lineAngle = Math.random() * Math.PI * 2;
+
+          ctx.strokeStyle = lineColor;
+          ctx.lineWidth = lineWidth;
+          ctx.beginPath();
+          ctx.moveTo(lineX, lineY);
+          ctx.lineTo(
+            lineX + Math.cos(lineAngle) * lineLength,
+            lineY + Math.sin(lineAngle) * lineLength
+          );
+          ctx.stroke();
+        }
+      }
+
+      function drawMondrianLines() {
+        ctx.fillStyle = "#222";
+        const lineWidth = Math.random() * 5;
+
+        // Generate random proportions for Mondrian-like lines
+        const horizontalLineX = Math.random() * canvas.width;
+        const horizontalLineHeight = Math.random() * canvas.height + 600;
+
+        const verticalLineY = Math.random() * canvas.height;
+        const verticalLineWidth = Math.random() * canvas.width;
+
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = getRandomColor();
+        ctx.fillRect(horizontalLineX, 0, lineWidth, horizontalLineHeight);
+        ctx.fillRect(10, verticalLineY, verticalLineWidth, lineWidth);
+      }
+      async function animate() {
+        let numReplicas = 1;
+        while (true) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          drawMondrianLines(); // Draw Mondrian-like lines
+          const baseSize = 25;
+
+          for (let i = 0; i < numReplicas; i++) {
+            const x = Math.random() * (canvas.width - baseSize);
+            const y = Math.random() * (canvas.height - baseSize);
+            const distortion = Math.sin((Date.now() + i * 50) * 0.001); // Slower animation
+            const color = getRandomColor();
+
+            drawDistortedObject(x, y, baseSize, distortion, color);
+
+            const circleX = Math.random() * canvas.width;
+            const circleY = Math.random() * canvas.height;
+            const circleRadius = Math.random() * 50; // Random circle radius
+            const circleColor = getRandomColor();
+            drawCircle(circleX, circleY, circleRadius, circleColor);
+
+            // Draw squares with different sizes and colors
+            const squareX = Math.random() * canvas.width;
+            const squareY = Math.random() * canvas.height;
+            const squareSize = Math.random() * 20;
+            const squareColor = getRandomColor();
+            drawSquare(squareX, squareY, squareSize, squareColor, 1.0);
+
+            drawRandomLines();
+          }
+          numReplicas++;
+
+          await sleep(5000); // Adjust this value to control the animation speed
+        }
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
